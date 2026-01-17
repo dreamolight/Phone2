@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final apiServiceProvider = Provider((ref) => ApiService());
 
@@ -9,16 +10,45 @@ class ApiService {
   static const String baseUrl = 'http://marsmobile.com:3000'; // Change to IP if real device
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
+  // Helper to handle Web Insecure Contexts (fallback to SharedPreferences)
+  Future<String?> _safeRead(String key) async {
+    try {
+      return await _storage.read(key: key);
+    } catch (e) {
+      // If secure storage fails (e.g. insecure web), fallback to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(key);
+    }
+  }
+
+  Future<void> _safeWrite(String key, String value) async {
+    try {
+      await _storage.write(key: key, value: value);
+    } catch (e) {
+       final prefs = await SharedPreferences.getInstance();
+       await prefs.setString(key, value);
+    }
+  }
+
+  Future<void> _safeDelete(String key) async {
+    try {
+      await _storage.delete(key: key);
+    } catch (e) {
+       final prefs = await SharedPreferences.getInstance();
+       await prefs.remove(key);
+    }
+  }
+
   Future<String?> getToken() async {
-    return await _storage.read(key: 'jwt_token');
+    return await _safeRead('jwt_token');
   }
 
   Future<void> saveToken(String token) async {
-    await _storage.write(key: 'jwt_token', value: token);
+    await _safeWrite('jwt_token', token);
   }
 
   Future<void> logout() async {
-    await _storage.delete(key: 'jwt_token');
+    await _safeDelete('jwt_token');
   }
 
   Future<Map<String, dynamic>> login(String username, String password) async {
