@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 final apiServiceProvider = Provider((ref) => ApiService());
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.68.89:3000'; // Change to IP if real device
+  static const String baseUrl = 'http://marsmobile.com:3000'; // Change to IP if real device
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   Future<String?> getToken() async {
