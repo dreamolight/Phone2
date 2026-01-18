@@ -243,12 +243,7 @@ class _ConversationListScreenState extends ConsumerState<ConversationListScreen>
         ),
       ),
       body: _buildBody(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-            // TODO: Implement new conversation dialog
-        },
-        child: const Icon(Icons.message),
-      ),
+
     );
   }
 

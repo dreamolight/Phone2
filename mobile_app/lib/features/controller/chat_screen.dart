@@ -14,7 +14,7 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   List<dynamic> _messages = [];
   bool _isLoading = true;
-  final TextEditingController _textController = TextEditingController();
+
 
   @override
   void initState() {
@@ -46,23 +46,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
-  Future<void> _sendMessage() async {
-    if (_textController.text.isEmpty) return;
-    try {
-      final api = ref.read(apiServiceProvider);
-      await api.sendCommand('send_sms', {
-        'to': widget.remoteNumber,
-        'body': _textController.text,
-      });
-      _textController.clear();
-      // Optimistically add to list or refresh
-      // For now refresh after small delay or just wait for polling. 
-      // Let's just show success
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Queued')));
-    } catch (e) {
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -107,23 +91,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     },
                   ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _textController,
-                    decoration: const InputDecoration(
-                      hintText: 'Type a message',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                IconButton(onPressed: _sendMessage, icon: const Icon(Icons.send)),
-              ],
-            ),
-          ),
+            const SizedBox.shrink(),
         ],
       ),
     );

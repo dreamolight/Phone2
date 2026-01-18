@@ -239,21 +239,5 @@ class ApiService {
     }
   }
 
-  Future<void> sendCommand(String type, Map<String, dynamic> payload) async {
-    final token = await getToken();
-    if (token == null) throw Exception('Not authenticated');
 
-    final response = await http.post(
-      Uri.parse('$baseUrl/sync/command'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({'type': type, 'payload': payload}),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Command failed: ${response.body}');
-    }
-  }
 }

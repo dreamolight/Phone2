@@ -47,8 +47,7 @@ dependencies:
   intl: ^0.20.2
   flutter_background_service: ^5.1.0
   flutter_local_notifications: ^19.5.0
-  background_sms:
-    path: packages/background_sms_fixed
+
   shared_preferences: ^2.5.4
   fast_contacts: ^5.0.1
 
