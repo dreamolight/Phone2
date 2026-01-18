@@ -338,18 +338,8 @@ Future<void> _performSync(ServiceInstance service, String token, {bool fetchAll 
             'remote_number': call.number,
             'remote_name': call.name ?? 'Unknown',
             'content': '',
-        logs.add({
-            'type': type,
-            'remote_number': call.number,
-            'remote_name': call.name ?? 'Unknown',
-            'content': '',
             'timestamp': call.timestamp,
             'duration': call.duration,
-            // For calls, usually 'missed' are unread. Others are read.
-            // But we don't have a direct 'isRead' on CallLogEntry in this package easily?
-            // Actually CallLogEntry has no isRead pending on Android. 
-            // We'll assume missed calls are unread initially if we can't tell, or just default to TRUE for non-missed.
-            // Let's assume TRUE for now unless missed? No, let's just send false for missed.
             'is_read': (type != 'call_missed'), 
         });
     }

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 final apiServiceProvider = Provider((ref) => ApiService());
 
@@ -12,16 +13,26 @@ class ApiService {
 
   // Helper to handle Web Insecure Contexts (fallback to SharedPreferences)
   Future<String?> _safeRead(String key) async {
+    // On Web, FlutterSecureStorage requires HTTPS/Localhost.
+    // To ensure it works on HTTP deployments, we force SharedPreferences.
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(key);
+    }
     try {
       return await _storage.read(key: key);
     } catch (e) {
-      // If secure storage fails (e.g. insecure web), fallback to SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(key);
     }
   }
 
   Future<void> _safeWrite(String key, String value) async {
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(key, value);
+      return;
+    }
     try {
       await _storage.write(key: key, value: value);
     } catch (e) {
@@ -31,6 +42,11 @@ class ApiService {
   }
 
   Future<void> _safeDelete(String key) async {
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(key);
+      return;
+    }
     try {
       await _storage.delete(key: key);
     } catch (e) {
